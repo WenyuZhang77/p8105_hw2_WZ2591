@@ -5,3 +5,82 @@ date: "10/5/2021"
 output: github_document
 ---
 
+```{r}
+library(tidyverse)
+library(readxl)
+```
+
+# Problem 1
+## Read and clean the Mr. Trash Wheel sheet:
+
+1. specify the sheet in the Excel file and to omit non-data entries (rows with notes / figures; columns containing notes) using arguments in read_excel
+
+2. use reasonable variable names
+
+3. omit rows that do not include dumpster-specific data
+
+4. round the number of sports balls to the nearest integer
+
+```{r}
+mr_trash_wheel_data = 
+  read_excel("data/Trash_Wheel_Collection_Totals_8_6_19.xlsx", range = "A2:N408") %>% 
+  janitor::clean_names() %>% 
+  rename(weight = weight_tons, volume_cubic = volume_cubic_yards) %>% 
+  filter(!is.na(dumpster)) %>%
+  mutate(sports_balls = as.integer(round(sports_balls)))
+
+mr_trash_wheel_data
+```
+
+## Read and clean precipitation data for 2018 and 2019:
+
+```{r}
+trash_wheel_precipitation_2018 = 
+  read_excel("data/Trash_Wheel_Collection_Totals_8_6_19.xlsx", sheet = 5, range = "A2:B15") %>%
+  janitor::clean_names() %>%
+  rename(total_precipitation = total) %>%
+  filter(!is.na(total_precipitation)) %>% 
+  mutate(year = 2018, 
+         month = month.name[month])
+
+trash_wheel_precipitation_2018
+```
+
+```{r}
+trash_wheel_precipitation_2019 = 
+  read_excel("data/Trash_Wheel_Collection_Totals_8_6_19.xlsx", sheet = 4, range = "A2:B15") %>%
+  janitor::clean_names() %>%
+  rename(total_precipitation = total) %>%
+  drop_na(total_precipitation) %>% 
+  mutate(year = 2019, 
+         month = month.name[month])
+
+trash_wheel_precipitation_2019
+```
+
+```{r}
+trash_wheel_precipitation_2018_2019 = 
+  full_join(trash_wheel_precipitation_2018, trash_wheel_precipitation_2019, by = "month")
+
+
+trash_wheel_precipitation_2018_2019$month[13] = "Grand Total"
+
+trash_wheel_precipitation_2018_2019
+```
+
+
+# Problem 2
+##First, clean the data in pols-month.csv. 
+
+1. Use separate() to break up the variable mon into integer variables year, month, and day
+
+2. replace month number with month name
+
+3. create a president variable taking values gop and dem, and remove prez_dem and prez_gop
+
+4. remove the day variable.
+
+```{r}
+
+```
+
