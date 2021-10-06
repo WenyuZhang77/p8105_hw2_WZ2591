@@ -81,6 +81,17 @@ trash_wheel_precipitation_2018_2019
 4. remove the day variable.
 
 ```{r}
-
+pols_month_df = 
+  read_csv("data/fivethirtyeight_datasets/pols-month.csv") %>%
+  janitor::clean_names() %>% 
+  separate(mon, into = c("year", "month", "day")) %>% 
+  mutate(month = month.name[as.numeric(month)]) %>% 
+  mutate(president = if_else(prez_gop == 0, "democreatic", "republican")) %>%
+  select(-prez_dem, -prez_gop, -day)
 ```
+
+## Second, clean the data in snp.csv using a similar process to the above. 
+
+For consistency across datasets, arrange according to year and month, and organize so that year and month are the leading columns.
+
 
