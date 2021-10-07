@@ -62,7 +62,6 @@ trash_wheel_precipitation_2019
 trash_wheel_precipitation_2018_2019 = 
   full_join(trash_wheel_precipitation_2018, trash_wheel_precipitation_2019, by = "month")
 
-
 trash_wheel_precipitation_2018_2019$month[13] = "Grand Total"
 
 trash_wheel_precipitation_2018_2019
@@ -82,10 +81,11 @@ trash_wheel_precipitation_2018_2019
 
 ```{r}
 pols_month_df = 
-  read_csv("data/fivethirtyeight_datasets/pols-month.csv") %>%
+  read_csv("data/fivethirtyeight_datasets/pols-month.csv") %>%   
   janitor::clean_names() %>% 
   separate(mon, into = c("year", "month", "day")) %>% 
-  mutate(month = month.name[as.numeric(month)]) %>% 
+  mutate(month = month.name[as.numeric(month)], 
+         year = as.numeric(year)) %>% 
   mutate(president = if_else(prez_gop == 0, "democreatic", "republican")) %>%
   select(-prez_dem, -prez_gop, -day)
 ```
@@ -93,5 +93,40 @@ pols_month_df =
 ## Second, clean the data in snp.csv using a similar process to the above. 
 
 For consistency across datasets, arrange according to year and month, and organize so that year and month are the leading columns.
+
+```{r}
+snp_df = 
+  read_csv("data/fivethirtyeight_datasets/snp.csv") %>% 
+  janitor::clean_names() %>% 
+  separate(date, into = c("month", "day", "year")) %>% 
+  mutate(month = month.name[as.numeric(month)], 
+         year = as.numeric(year)) %>%
+  select(year, month, day, close) %>%
+  mutate(year = ifelse(year > 90, year + 1900, year + 2000)) %>% 
+  arrange(year, month)
+```
+
+## Third, tidy the unemployment data so that it can be merged with the previous datasets. 
+
+This process will involve switching from “wide” to “long” format; ensuring that key variables have the same name; and ensuring that key variables take the same values.
+
+```{r}
+unemployment_df = 
+  read_csv("data/fivethirtyeight_datasets/unemployment.csv") %>%
+  pivot_longer(
+    Jan:Dec,
+    names_to = "month",
+    values_to = "unemployment") %>%
+  mutate(month = month.name[match(month,month.abb)])
+```
+
+Join the datasets by merging snp into pols, and merging unemployment into the result.
+
+```{r}
+pols_snp = left_join(pols_month_df, snp_df) 
+```
+
+
+
 
 
