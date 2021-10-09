@@ -22,51 +22,82 @@ library(readxl)
 4. round the number of sports balls to the nearest integer
 
 ```{r}
-mr_trash_wheel_data = 
-  read_excel("data/Trash_Wheel_Collection_Totals_8_6_19.xlsx", range = "A2:N408") %>% 
+mr_trash_wheel = 
+  read_excel("data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", range = "A2:N535") %>% 
   janitor::clean_names() %>% 
-  rename(weight = weight_tons, volume_cubic = volume_cubic_yards) %>% 
+  rename(weight = weight_tons, volume = volume_cubic_yards) %>% 
   filter(!is.na(dumpster)) %>%
   mutate(sports_balls = as.integer(round(sports_balls)))
-
-mr_trash_wheel_data
 ```
 
 ## Read and clean precipitation data for 2018 and 2019:
 
 ```{r}
 trash_wheel_precipitation_2018 = 
-  read_excel("data/Trash_Wheel_Collection_Totals_8_6_19.xlsx", sheet = 5, range = "A2:B15") %>%
+  read_excel("data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = 7, range = "A2:B14") %>%
   janitor::clean_names() %>%
   rename(total_precipitation = total) %>%
   filter(!is.na(total_precipitation)) %>% 
   mutate(year = 2018, 
-         month = month.name[month])
+         month = month.name[month]) %>%
+  relocate(year)
 
 trash_wheel_precipitation_2018
 ```
 
 ```{r}
 trash_wheel_precipitation_2019 = 
-  read_excel("data/Trash_Wheel_Collection_Totals_8_6_19.xlsx", sheet = 4, range = "A2:B15") %>%
+  read_excel("data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", sheet = 6, range = "A2:B14") %>%
   janitor::clean_names() %>%
   rename(total_precipitation = total) %>%
   drop_na(total_precipitation) %>% 
   mutate(year = 2019, 
-         month = month.name[month])
+         month = month.name[month]) %>% 
+  relocate(year)
 
 trash_wheel_precipitation_2019
 ```
 
 ```{r}
+# Combine precipitation datasets for 2018 and 2019
 trash_wheel_precipitation_2018_2019 = 
-  full_join(trash_wheel_precipitation_2018, trash_wheel_precipitation_2019, by = "month")
-
-trash_wheel_precipitation_2018_2019$month[13] = "Grand Total"
+  bind_rows(trash_wheel_precipitation_2018, trash_wheel_precipitation_2019)
 
 trash_wheel_precipitation_2018_2019
 ```
 
+## Write a paragraph about these data
+
+For "mr_trash_wheel_data", there are `r nrow(mr_trash_wheel)` rows and `r ncol(mr_trash_wheel)` columns with 13 variables: dumpster, month, year, weight, volume, plastic_bottles, polystyrene, cigarette_butts, glass_bottles, grocery_bags, chip_bags, sports_balls and homes_powered.
+
+```{r}
+# Describe mr_trash_wheel data
+skimr::skim(mr_trash_wheel)
+nrow(mr_trash_wheel)
+ncol(mr_trash_wheel)
+```
+
+For "trash_wheel_precipitation_2018_2019" data, there are `r nrow(trash_wheel_precipitation_2018_2019)` rows and `r ncol(trash_wheel_precipitation_2018_2019)` columns with 3 variables: month, year and total_precipitation
+
+```{r}
+# Describe trash_wheel_precipitation_2018_2019 data
+skimr::skim(trash_wheel_precipitation_2018_2019)
+nrow(trash_wheel_precipitation_2018_2019)
+ncol(trash_wheel_precipitation_2018_2019)
+```
+
+For available data, what was the total precipitation in 2018? What was the median number of sports balls in a dumpster in 2019?
+
+```{r}
+# The total precipitation in 2018
+sum(pull(trash_wheel_precipitation_2018,total_precipitation))
+
+# The median number of sports balls in a dumpster in 2019
+balls_in_2019 = filter(mr_trash_wheel, year == "2019")
+median(pull(balls_in_2019, sports_balls))
+```
+
+The total precipitation in 201 is `r sum(pull(trash_wheel_precipitation_2018,total_precipitation))`, and the median number of sports balls in a dumpster in 2019 is `r median(pull(balls_in_2019, sports_balls))`
 
 # Problem 2
 ##First, clean the data in pols-month.csv. 
@@ -102,7 +133,11 @@ snp_df =
   mutate(month = month.name[as.numeric(month)], 
          year = as.numeric(year)) %>%
   select(year, month, day, close) %>%
+  
+  
   mutate(year = ifelse(year > 90, year + 1900, year + 2000)) %>% 
+  
+  
   arrange(year, month)
 ```
 
